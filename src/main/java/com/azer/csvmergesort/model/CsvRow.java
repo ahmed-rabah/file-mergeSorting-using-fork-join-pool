@@ -6,7 +6,7 @@ public class CsvRow implements Comparable<CsvRow> {
     private String sortType;
     private String sortColumn;
 
-    public CsvRow(Map<String, String> fields , String sortType , String sortColumn) {
+    public CsvRow(Map<String, String> fields, String sortType, String sortColumn) {
         this.fields = fields;
         this.sortType = sortType;
         this.sortColumn = sortColumn;
@@ -14,21 +14,24 @@ public class CsvRow implements Comparable<CsvRow> {
 
     public Map<String, String> getFields() { return fields; }
     public String getSortType() { return sortType; }
-    public void setSortKey(String sortKey) { this.sortType = sortKey; }
-    public String getSsortColumn() { return sortColumn; }
-    public void setSortColumny(String sortColumn) { this.sortColumn = sortColumn; }
+    public void setSortType(String sortType) { this.sortType = sortType; }
+    public String getSortColumn() { return sortColumn; }
+    public void setSortColumn(String sortColumn) { this.sortColumn = sortColumn; }
 
     @Override
     public int compareTo(CsvRow other) {
-        if(this.sortType.equals("string")){
-        return this.fields.get(sortColumn).compareToIgnoreCase(other.fields.get(sortColumn));
-        }else{
-            if(Double.parseDouble(this.fields.get(sortColumn)) > Double.parseDouble(other.fields.get(sortColumn))){
-                return 1;
-            } else if (Double.parseDouble(this.fields.get(sortColumn)) < Double.parseDouble(other.fields.get(sortColumn))) {
-                return -1 ;
-            }else{
-                return 0;
+        String val1 = fields.get(sortColumn);
+        String val2 = other.fields.get(sortColumn);
+
+        if ("string".equalsIgnoreCase(sortType)) {
+            return val1.compareToIgnoreCase(val2);
+        } else {
+            try {
+                double num1 = Double.parseDouble(val1);
+                double num2 = Double.parseDouble(val2);
+                return Double.compare(num1, num2);
+            } catch (NumberFormatException e) {
+                return 0; // ou lève une exception personnalisée
             }
         }
     }

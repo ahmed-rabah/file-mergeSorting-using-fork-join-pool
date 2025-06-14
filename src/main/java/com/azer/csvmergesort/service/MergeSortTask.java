@@ -14,6 +14,7 @@ public class MergeSortTask extends RecursiveTask<List<CsvRow>> {
 
     @Override
     protected List<CsvRow> compute() {
+        System.out.println("Thread utilisé : " + Thread.currentThread().getName());
         if (data.size() <= 1) return data;
 
         int mid = data.size() / 2;

@@ -11,7 +11,8 @@ import java.util.*;
 @Service
 public class CsvService {
 
-    public List<CsvRow> readCsv(InputStream inputStream  ,String sortType , String sortColumn) throws IOException, CsvValidationException {
+    public List<CsvRow> readCsv(InputStream inputStream , String sortType , String sortColumn)
+            throws IOException, CsvValidationException{
         List<CsvRow> rows = new ArrayList<>();
         try (CSVReader reader = new CSVReader(new InputStreamReader(inputStream))) {
             String[] header = reader.readNext();
@@ -27,12 +28,12 @@ public class CsvService {
         return rows;
     }
 
-    public List<String> extractHeader(InputStream inputStream) throws IOException, CsvValidationException {
-        try (CSVReader reader = new CSVReader(new InputStreamReader(inputStream))) {
-            String[] header = reader.readNext();
-            return header != null ? Arrays.asList(header) : Collections.emptyList();
-        }
-    }
+//    public List<String> extractHeader(InputStream inputStream) throws IOException, CsvValidationException {
+//        try (CSVReader reader = new CSVReader(new InputStreamReader(inputStream))) {
+//            String[] header = reader.readNext();
+//            return header != null ? Arrays.asList(header) : Collections.emptyList();
+//        }
+//    }
 
     public File writeCsv(List<CsvRow> rows) throws IOException {
         File file = File.createTempFile("sorted", ".csv");
