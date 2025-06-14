@@ -129,29 +129,29 @@ public String handleFileUpload(@RequestParam("file") MultipartFile file, Model m
                 .body(new FileSystemResource(sortedFile));
     }
 
-    @PostMapping("/sort-seq")
-    public ResponseEntity<FileSystemResource> sortSequentially(@RequestBody SortRequest request)
-            throws Exception {
-        File file = new File(request.getFilePath());
-        if (!file.exists() || !file.isFile()) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        try (InputStream inputStream = new FileInputStream(file)) {
-            List<CsvRow> rows = csvService.readCsv(inputStream, request.getSortColumnType(),
-                    request.getSortColumn());
-
-            long start = System.currentTimeMillis();
-            Collections.sort(rows);  // tri séquentiel
-            long end = System.currentTimeMillis();
-            System.out.println("Tri séquentiel : " + (end - start) + " ms");
-
-            File result = csvService.writeCsv(rows);
-            return ResponseEntity.ok()
-                    .header("Content-Disposition"
-                            , "attachment; filename=sorted_sequential.csv")
-                    .body(new FileSystemResource(result));
-        }
-    }
+//    @PostMapping("/sort-seq")
+//    public ResponseEntity<FileSystemResource> sortSequentially(@RequestBody SortRequest request)
+//            throws Exception {
+//        File file = new File(request.getFilePath());
+//        if (!file.exists() || !file.isFile()) {
+//            return ResponseEntity.badRequest().build();
+//        }
+//
+//        try (InputStream inputStream = new FileInputStream(file)) {
+//            List<CsvRow> rows = csvService.readCsv(inputStream, request.getSortColumnType(),
+//                    request.getSortColumn());
+//
+//            long start = System.currentTimeMillis();
+//            Collections.sort(rows);  // tri séquentiel
+//            long end = System.currentTimeMillis();
+//            System.out.println("Tri séquentiel : " + (end - start) + " ms");
+//
+//            File result = csvService.writeCsv(rows);
+//            return ResponseEntity.ok()
+//                    .header("Content-Disposition"
+//                            , "attachment; filename=sorted_sequential.csv")
+//                    .body(new FileSystemResource(result));
+//        }
+//    }
 
 }
