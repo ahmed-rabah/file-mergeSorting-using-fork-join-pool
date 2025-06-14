@@ -7,6 +7,7 @@ import com.azer.csvmergesort.service.CsvProcessingService ;
 import com.azer.csvmergesort.service.MergeSortTask;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -15,7 +16,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
 
-@RestController
+@Controller
 @RequestMapping("/api")
 public class CsvSortController {
     private final CsvService csvService;
