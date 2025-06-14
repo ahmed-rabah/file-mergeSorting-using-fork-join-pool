@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title>Choose Column and Sort Method</title>
+</head>
+<body>
+
+<h1>Choose Column and Sorting Method</h1>
+
+<form th:action="@{/csv/sort}" method="post">
+  <input type="hidden" name="filePath" th:value="${filePath}" />
+
+  <label for="column">Select Column to Sort:</label>
+  <select id="column" name="column" required>
+    <option th:each="header : ${headers}" th:value="${header}" th:text="${header}"></option>
+  </select>
+
+  <br/><br/>
+
+  <label>Sort Method:</label><br/>
+  <input type="radio" id="parallel" name="method" value="parallel" checked />
+  <label for="parallel">Parallel (ForkJoinPool)</label><br/>
+  <input type="radio" id="sequential" name="method" value="sequential" />
+  <label for="sequential">Sequential</label>
+
+  <label>Sort Type:</label><br/>
+  <input type="radio" id="string" name="sortType" value="string" checked />
+  <label for="string">Text</label><br/>
+  <input type="radio" id="number" name="sortType" value="number" />
+  <label for="number">Number</label>
+
+  <br/><br/>
+  <button type="submit">Sort CSV</button>
+</form>
+
+
+</body>
+</html>
