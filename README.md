@@ -39,8 +39,8 @@ This project implements Java concepts of **parallelism** and **concurrency** to 
 - 🔢 Numeric or alphabetical sort
 - 🧵 Sequential sort (single-threaded)
 - 🚀 Parallel sort (multi-threaded with Fork/Join)
-- ⏱ Performance measurement shown in logs(not added)
-- ⚠ Display of ignored lines if they are corrupted or incomplete(not added)
+- ⏱ Performance measurement shown in logs (not added)
+- ⚠ Display of ignored lines if they are corrupted or incomplete (not added)
 
 ---
 
@@ -84,7 +84,7 @@ This sort:
 2. ✅ Select column and type (String / Number)
 3. 🚦 Choose "Sequential sort" or "Parallel sort"
 4. 📅 Download the sorted file
-5. 🔎 View ignored lines (corrupted format, missing columns)(not added)
+5. 🔎 View ignored lines (corrupted format, missing columns) (not added)
 
 ---
 
