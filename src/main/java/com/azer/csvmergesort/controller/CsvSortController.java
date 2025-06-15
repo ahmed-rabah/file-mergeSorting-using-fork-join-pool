@@ -2,8 +2,8 @@ package com.azer.csvmergesort.controller;
 
 import com.azer.csvmergesort.model.CsvRow;
 import com.azer.csvmergesort.model.SortRequest;
+import com.azer.csvmergesort.service.CsvProcessingService;
 import com.azer.csvmergesort.service.CsvService;
-import com.azer.csvmergesort.service.CsvProcessingService ;
 import com.azer.csvmergesort.service.MergeSortTask;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.ResponseEntity;
@@ -20,138 +20,103 @@ import java.util.concurrent.ForkJoinPool;
 @Controller
 @RequestMapping("/csv")
 public class CsvSortController {
+
     private final CsvService csvService;
     private final CsvProcessingService csvProcessingService;
     private final ForkJoinPool pool = new ForkJoinPool();
 
-    // Fichiers temporaires pour stocker l’upload et le résultat
     private File uploadedFile;
     private File sortedFile;
 
-    public CsvSortController(CsvService csvService  , CsvProcessingService csvProcessingService) {
+    public CsvSortController(CsvService csvService, CsvProcessingService csvProcessingService) {
         this.csvService = csvService;
-        this.csvProcessingService =  csvProcessingService;
+        this.csvProcessingService = csvProcessingService;
     }
 
-    // 1. Page pour afficher le formulaire d’upload
+    // 1. Formulaire d’upload
     @GetMapping("/upload")
     public String showUploadForm() {
-        return "upload";  // upload.html (template Thymeleaf)
+        return "upload";
     }
 
-//    @PostMapping("/upload")
-//    public ResponseEntity<List<String>> upload(@RequestParam("file") MultipartFile file) throws Exception {
-//        return ResponseEntity.ok(csvProcessingService.extractHeaders(file));
-//    }
-        // 2. Traiter l’upload du fichier et afficher les colonnes extraites
-@PostMapping("/upload")
-public String handleFileUpload(@RequestParam("file") MultipartFile file, Model model) throws Exception {
-    // Sauvegarde temporaire du fichier uploadé
-    uploadedFile = File.createTempFile("upload-", ".csv");
-    file.transferTo(uploadedFile);
+    // 2. Traiter l’upload et extraire les colonnes
+    @PostMapping("/upload")
+    public String handleFileUpload(@RequestParam("file") MultipartFile file, Model model) throws Exception {
+        uploadedFile = File.createTempFile("upload-", ".csv");
+        file.transferTo(uploadedFile);
 
-    // Extraire les headers depuis le fichier temporaire (InputStream)
         List<String> headers = csvProcessingService.extractHeaders(uploadedFile);
         model.addAttribute("headers", headers);
+        model.addAttribute("filePath", uploadedFile.getAbsolutePath());
 
-    model.addAttribute("filePath", uploadedFile.getAbsolutePath());
+        return "choose-column";
+    }
 
-    return "choose-column"; // choose-column.html
-}
+    // 3. Traiter le tri
+    @PostMapping("/sort")
+    public String sortCsv(@RequestParam String filePath,
+                          @RequestParam String sortType,
+                          @RequestParam String column,
+                          @RequestParam String method,
+                          Model model) throws Exception {
 
-/*    @PostMapping("/sort")
-    public ResponseEntity<FileSystemResource> sortCsv(@RequestParam("file") String filePath,
-                                                      @RequestParam("column") String column) throws Exception {
-        File file = new File(filePath);
-        if (!file.exists() || !file.isFile()) {
-            return ResponseEntity.badRequest().build(); // return 400 if file doesn't exist
-        }
+        try (BufferedInputStream bufferedInput = new BufferedInputStream(new FileInputStream(filePath))) {
+            bufferedInput.mark(2048);
 
-        try (InputStream inputStream = new FileInputStream(file)) {
-            List<CsvRow> rows = csvService.readCsv(inputStream, column);
-            List<CsvRow> sorted = pool.invoke(new MergeSortTask(rows));
-            File result = csvService.writeCsv(sorted);
-            return ResponseEntity.ok()
-                    .header("Content-Disposition", "attachment; filename=sorted.csv")
-                    .body(new FileSystemResource(result));
-        }
-  }*/
-//   @PostMapping("/sort")
-//    public ResponseEntity<FileSystemResource> sortCsv(@RequestBody SortRequest request) throws Exception {
-//        File file = new File(request.getFilePath());
-//        if (!file.exists() || !file.isFile()) {
-//            return ResponseEntity.badRequest().build();
-//        }
-//
-//        try (InputStream inputStream = new FileInputStream(file)) {
-//            List<CsvRow> rows = csvService.readCsv(inputStream,request.getSortColumnType(),request.getSortColumn());
-//            long start = System.currentTimeMillis();
-//            List<CsvRow> sorted = pool.invoke(new MergeSortTask(rows));
-//            long end = System.currentTimeMillis();
-//            System.out.println("Temps de tri : " + (end - start) + " ms");
-//            File result = csvService.writeCsv(sorted);
-//            return ResponseEntity.ok()
-//                    .header("Content-Disposition", "attachment; filename=sorted.csv")
-//                    .body(new FileSystemResource(result));
-//        }
-//    }
-        // 3. Traiter la demande de tri selon la colonne choisie et méthode
-        @PostMapping("/sort")
-        public String sortCsv(@RequestParam String filePath,
-                              @RequestParam String sortType,  // récupérer ce paramètre
-                              @RequestParam String column,
-                              @RequestParam String method,
-                              Model model) throws Exception {
-            List<CsvRow> rows = csvService.readCsv(new FileInputStream(filePath),
-                    sortType, column);
+            char separator = csvService.detectSeparator(bufferedInput);
+            bufferedInput.reset();
+
+            List<CsvRow> rows = csvService.readCsv(bufferedInput, sortType, column);
 
             if ("parallel".equals(method)) {
-                sortedFile = csvService.writeCsv(pool.invoke(new MergeSortTask(rows)));
+                sortedFile = csvService.writeCsv(pool.invoke(new MergeSortTask(rows)), separator);
             } else {
                 Collections.sort(rows);
-                sortedFile = csvService.writeCsv(rows);
+                sortedFile = csvService.writeCsv(rows, separator);
             }
 
             model.addAttribute("filename", sortedFile.getName());
-            return "download";  // download.html
+            return "download";
         }
+    }
 
-
-    // 4. Endpoint pour télécharger le fichier trié
+    // 4. Télécharger le fichier trié
     @GetMapping("/download")
     @ResponseBody
-    public ResponseEntity<FileSystemResource> downloadSortedFile() throws IOException {
+    public ResponseEntity<FileSystemResource> downloadSortedFile() {
         if (sortedFile == null || !sortedFile.exists()) {
             return ResponseEntity.notFound().build();
         }
+
         return ResponseEntity.ok()
                 .header("Content-Disposition", "attachment; filename=" + sortedFile.getName())
                 .body(new FileSystemResource(sortedFile));
     }
 
+    // (Optionnel) Endpoint API : tri séquentiel depuis JSON
     @PostMapping("/sort-seq")
-    public ResponseEntity<FileSystemResource> sortSequentially(@RequestBody SortRequest request)
-            throws Exception {
+    public ResponseEntity<FileSystemResource> sortSequentially(@RequestBody SortRequest request) throws Exception {
         File file = new File(request.getFilePath());
         if (!file.exists() || !file.isFile()) {
             return ResponseEntity.badRequest().build();
         }
 
-        try (InputStream inputStream = new FileInputStream(file)) {
-            List<CsvRow> rows = csvService.readCsv(inputStream, request.getSortColumnType(),
-                    request.getSortColumn());
+        try (BufferedInputStream bufferedInput = new BufferedInputStream(new FileInputStream(file))) {
+            bufferedInput.mark(2048);
 
+            char separator = csvService.detectSeparator(bufferedInput);
+            bufferedInput.reset();
+
+            List<CsvRow> rows = csvService.readCsv(bufferedInput, request.getSortColumnType(), request.getSortColumn());
             long start = System.currentTimeMillis();
-            Collections.sort(rows);  // tri séquentiel
+            Collections.sort(rows);
             long end = System.currentTimeMillis();
             System.out.println("Tri séquentiel : " + (end - start) + " ms");
 
-            File result = csvService.writeCsv(rows);
+            File result = csvService.writeCsv(rows, separator);
             return ResponseEntity.ok()
-                    .header("Content-Disposition"
-                            , "attachment; filename=sorted_sequential.csv")
+                    .header("Content-Disposition", "attachment; filename=sorted_sequential.csv")
                     .body(new FileSystemResource(result));
         }
     }
-
 }

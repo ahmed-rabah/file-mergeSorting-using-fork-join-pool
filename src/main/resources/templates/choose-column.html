@@ -2,38 +2,96 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8" />
-  <title>Choose Column and Sort Method</title>
+  <title>Choisir la colonne et la méthode de tri</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f7f9fc;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+    h2, h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+    form {
+      background: white;
+      padding: 30px 40px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      width: 360px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    label {
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+    select, input[type="radio"] {
+      margin-right: 8px;
+      cursor: pointer;
+    }
+    select {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .radio-group {
+      margin-bottom: 15px;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 12px 0;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      width: 100%;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
 </head>
 <body>
 
-<h1>Choose Column and Sorting Method</h1>
-
+<h2>Triér vos fichiers CSV</h2>
 <form th:action="@{/csv/sort}" method="post">
   <input type="hidden" name="filePath" th:value="${filePath}" />
 
-  <label for="column">Select Column to Sort:</label>
+  <label for="column">Sélectionnez la colonne à trier :</label>
   <select id="column" name="column" required>
     <option th:each="header : ${headers}" th:value="${header}" th:text="${header}"></option>
   </select>
 
-  <br/><br/>
+  <div class="radio-group">
+    <label>Méthode de tri :</label><br/>
+    <input type="radio" id="parallel" name="method" value="parallel" checked />
+    <label for="parallel">Parallèle (ForkJoinPool)</label><br/>
+    <input type="radio" id="sequential" name="method" value="sequential" />
+    <label for="sequential">Séquentiel</label>
+  </div>
 
-  <label>Sort Method:</label><br/>
-  <input type="radio" id="parallel" name="method" value="parallel" checked />
-  <label for="parallel">Parallel (ForkJoinPool)</label><br/>
-  <input type="radio" id="sequential" name="method" value="sequential" />
-  <label for="sequential">Sequential</label>
+  <div class="radio-group">
+    <label>Type de tri :</label><br/>
+    <input type="radio" id="string" name="sortType" value="string" checked />
+    <label for="string">Texte</label><br/>
+    <input type="radio" id="number" name="sortType" value="number" />
+    <label for="number">Nombre</label>
+  </div>
 
-  <label>Sort Type:</label><br/>
-  <input type="radio" id="string" name="sortType" value="string" checked />
-  <label for="string">Text</label><br/>
-  <input type="radio" id="number" name="sortType" value="number" />
-  <label for="number">Number</label>
-
-  <br/><br/>
-  <button type="submit">Sort CSV</button>
+  <button type="submit">Trier le CSV</button>
 </form>
-
 
 </body>
 </html>
