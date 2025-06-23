@@ -58,12 +58,16 @@ import java.util.concurrent.ForkJoinPool;
                               @RequestParam String method,
                               Model model) throws Exception {
             List<CsvRow> rows = csvService.readCsv(new FileInputStream(filePath), sortType, column);
+            long start = System.currentTimeMillis();
             if ("parallel".equals(method)) {
                 sortedFile = csvService.writeCsv(pool.invoke(new MergeSortTask(rows)));
-            } else {
+                           }
+            else {
                 Collections.sort(rows);
                 sortedFile = csvService.writeCsv(rows);
             }
+            long end = System.currentTimeMillis();
+            System.out.println("Temps de tri sequentiel: " + (end - start) + " ms");
 
             model.addAttribute("filename", sortedFile.getName());
             return "download";  // download.html
