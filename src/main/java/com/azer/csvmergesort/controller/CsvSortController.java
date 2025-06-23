@@ -111,6 +111,9 @@ public class CsvSortController {
             long start = System.currentTimeMillis();
             Collections.sort(rows);
             long end = System.currentTimeMillis();
+
+
+
             System.out.println("Tri séquentiel : " + (end - start) + " ms");
 
             File result = csvService.writeCsv(rows, separator);
