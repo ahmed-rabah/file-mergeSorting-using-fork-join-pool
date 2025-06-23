@@ -37,7 +37,7 @@ public List<CsvRow> readCsv(InputStream inputStream, String sortType, String sor
         }
         String[] line;
         while ((line = reader.readNext()) != null) {
-            // ⚠ Ignore les lignes vides ou avec moins de colonnes
+            //Ignore les lignes vides ou avec moins de colonnes
             if (line.length < header.length) {
                 System.err.println("Ligne ignorée (colonnes manquantes) : " + Arrays.toString(line));
                 continue;
